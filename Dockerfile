@@ -1,26 +1,27 @@
-FROM ubuntu:14.04
+FROM ubuntu:16.04
 
-MAINTAINER KiwenLau <kiwenlau@gmail.com>
+MAINTAINER ikaritw <ikaritw@gmail.com>
 
 WORKDIR /root
 
+RUN "sh" "-c" "echo nameserver 8.8.8.8 >> /etc/resolv.conf"
+
 # install openssh-server, openjdk and wget
-RUN apt-get update && apt-get install -y openssh-server openjdk-7-jdk wget
-
-# install hadoop 2.7.2
-RUN wget https://github.com/kiwenlau/compile-hadoop/releases/download/2.7.2/hadoop-2.7.2.tar.gz && \
-    tar -xzvf hadoop-2.7.2.tar.gz && \
-    mv hadoop-2.7.2 /usr/local/hadoop && \
-    rm hadoop-2.7.2.tar.gz
-
-# set environment variable
-ENV JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64 
-ENV HADOOP_HOME=/usr/local/hadoop 
-ENV PATH=$PATH:/usr/local/hadoop/bin:/usr/local/hadoop/sbin 
+RUN apt-get update && apt-get install -y openssh-server openjdk-8-jdk wget
 
 # ssh without key
-RUN ssh-keygen -t rsa -f ~/.ssh/id_rsa -P '' && \
-    cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+RUN ssh-keygen -t rsa -f ~/.ssh/id_rsa -P '' && cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+
+# install hadoop 2.7.3
+RUN wget http://apache.stu.edu.tw/hadoop/common/hadoop-2.7.3/hadoop-2.7.3.tar.gz && \
+    tar -xzvf hadoop-2.7.3.tar.gz && \
+    mv hadoop-2.7.3 /usr/local/hadoop && \
+    rm hadoop-2.7.3.tar.gz
+
+# set environment variable
+ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64 
+ENV HADOOP_HOME=/usr/local/hadoop 
+ENV PATH=$PATH:/usr/local/hadoop/bin:/usr/local/hadoop/sbin 
 
 RUN mkdir -p ~/hdfs/namenode && \ 
     mkdir -p ~/hdfs/datanode && \
@@ -45,6 +46,10 @@ RUN chmod +x ~/start-hadoop.sh && \
 
 # format namenode
 RUN /usr/local/hadoop/bin/hdfs namenode -format
+
+# More
+RUN apt-get install -y vim vim-scripts ctags
+RUN sed -i 's/#force_color_prompt=yes/force_color_prompt=yes/' ~/.bashrc
 
 CMD [ "sh", "-c", "service ssh start; bash"]
 
